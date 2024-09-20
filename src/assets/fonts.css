@@ -1,0 +1,17 @@
+@font-face {
+  font-family: 'Fort';
+  src: url('./fonts/Fort-Medium.woff2') format('woff2'),
+       url('./fonts/Fort-Medium.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fort';
+  src: url('./fonts/Fort-Extrabold.woff2') format('woff2'),
+       url('./fonts/Fort-Extrabold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
