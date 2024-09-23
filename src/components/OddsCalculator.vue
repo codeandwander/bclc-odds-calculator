@@ -22,7 +22,7 @@
 
     <div class="w-full h-[1px] bg-[#CDCDCD] mb-4"></div>
 
-    <div class="flex w-full mb-5 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 w-full mb-5 gap-5">
       <div class="flex w-full flex-col flex-1">
         <h3 class="text-black font-black">Enter Amount</h3>
         <p class="mb-4 text-black text-sm">Enter the amount or use the slide to increase your wager</p>
@@ -30,17 +30,16 @@
           type="number" 
           v-model="amount" 
           :class="[
-            'p-2 border border-gray-400 rounded mb-5',
-            betType === 'single' ? 'w-[117px]' : ''
+            'p-2 border border-gray-400 rounded mb-5 w-[117px]'
           ]"
         />
-        <input type="range" v-model="amount" min="0" max="1000" step="10" class="w-full mb-2" />
+        <input type="range" v-model="amount" min="0" max="1000" step="10" class="input-range w-full mb-2" />
       </div>
 
       <div v-if="betType === 'parlay'" class="flex-1">
-        <h3 class="mb-2 text-black font-bold">Format</h3>
-        <p class="mb-1 text-gray-500 text-sm">Choose your parlay odds format</p>
-        <select v-model="format" class="w-full p-3 text-sm rounded mb-2">
+        <h3 class="text-black font-bold">Format</h3>
+        <p class="mb-4 text-black text-sm">Choose your parlay odds format</p>
+        <select v-model="format" class="w-full p-3 text-sm rounded mb-2 pr-8 custom-select">
           <option value="decimal">Decimal</option>
           <option value="american">American</option>
           <option value="fractional">Fractional</option>
@@ -48,11 +47,11 @@
       </div>
     </div>
 
-    <div class="w-full h-[1px] bg-[#CDCDCD] mb-4"></div>
+    <div v-if="betType === 'single'" class="w-full h-[1px] bg-[#CDCDCD] mb-4"></div>
 
     <div v-if="betType === 'single'" class="mb-5">
       <h3 class="text-black font-black mb-2">Enter your preferred odds format</h3>
-      <div class="grid grid-cols-4 gap-5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
         <div class="flex flex-col justify-end">
           <label class="block mb-2 text-sm font-bold text-black leading-none">Decimal Odds
             <InfoTooltip>Decimal odds represent the total payout, including the stake. For example, a decimal odds of 1.91 means a $100 bet would return $191.</InfoTooltip>
@@ -72,7 +71,7 @@
           <input type="text" v-model="fractionalOdds" class="w-full p-3 text-sm rounded" @input="updateOdds('fractional')" />
         </div>
         <div class="flex flex-col justify-end">
-          <label class="block mb-2 text-sm font-bold text-black leading-none">Implied Probability
+          <label class="block mb-2 text-sm font-bold text-black leading-none">Implied<br/>Probability
             <InfoTooltip>Implied probability is the probability of an event occurring based on the odds. For example, a decimal odds of 1.91 means a $100 bet would return $191.</InfoTooltip>
           </label>
           <input type="number" v-model="impliedProbability" step="0.1" class="w-full p-3 text-sm rounded" @input="updateOdds('implied')" />
@@ -84,39 +83,58 @@
 
     <div v-if="betType === 'parlay'" class="grid grid-cols-2 gap-5 mb-5">
       <div v-for="(bet, index) in bets" :key="index">
-        <h3 class="mb-2 text-black font-bold">Bet {{ index + 1 }}</h3>
-        <p class="mb-1 text-gray-500 text-sm">{{ index === 0 ? 'Your first parlay odds' : 'Your next parlay odds' }}</p>
+        <h3 class="text-black font-bold">Bet {{ index + 1 }}</h3>
+        <p class="mb-4 text-sm text-black">{{ index === 0 ? 'Your first parlay odds' : 'Your next parlay odds' }}</p>
         <input type="number" v-model="bets[index]" step="0.01" class="w-full p-3 text-sm rounded" />
       </div>
-      <button @click="addBet" class="bg-[#00823E] text-white border-none py-2 px-5 rounded cursor-pointer mt-2 col-span-2">Add Bet</button>
     </div>
+    <button v-if="betType === 'parlay'"  @click="addBet" class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold">Add Bet</button>
 
-    <div class="grid grid-cols-4 gap-5 mt-5">
-      <div class="">
-        <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Potential Return' }}</h3>
-        <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Your total wager and potential payout' }}</p>
-        <input type="text" :value="betType === 'parlay' ? parlayOdds : potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+    <div class="w-full h-[1px] bg-[#CDCDCD] mb-5" v-if="betType === 'parlay'" ></div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
+      <div class="col-span-2 grid grid-cols-2 gap-5">
+        <div class="">
+          <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Potential Return' }}</h3>
+          <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Total wager and potential payout' }}</p>
+          <input type="text" :value="betType === 'parlay' ? parlayOdds : potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+        </div>
         
-        <button @click="reset" class="border border-black rounded-full py-2 px-6 cursor-pointer mt-5 font-bold text-black">Reset</button>
+        <div class="">
+          <h3 class="text-black font-black leading-none mb-2">To Win</h3>
+          <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit</p>
+          <input type="text" :value="toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+        </div>
+        
+        <div v-if="betType === 'parlay'" class="">
+          <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
+          <p class="mb-4 text-black text-sm">Total wager and potential payout</p>
+          <input type="text" :value="potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+        </div>
+
+        <div>
+          <button 
+            @click="reset" 
+            :class="[
+              'border border-[#001941] text-[#001941] rounded-full pt-2.5 pb-2 px-6 cursor-pointer font-bold', 
+              betType === 'single' ? 'md:relative md:-top-12' : ''
+            ]"
+          >
+            Reset
+          </button>
+        </div>
       </div>
 
-      <div class="">
-        <h3 class="text-black font-black leading-none mb-2">To Win</h3>
-        <p class="mb-4 text-black text-sm leading-none">Your expected profit</p>
-        <input type="text" :value="toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
-      </div>
-
-      <div v-if="betType === 'parlay'" class="bg-white p-3 rounded">
-        <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
-        <p class="mb-1 text-gray-500 text-sm">Your total wager and potential payout</p>
-        <input type="text" :value="potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
-      </div>
-
-      <div class="col-span-2 p-6">
-        <div class="w-full">
+      <div :class="['relative col-span-2 p-6', betType === 'parlay' ? 'hidden md:block' : '']">
+        <div class="w-full h-56">
           <Pie :data="chartData" :options="chartOptions" />
         </div>
-        <!-- <p class="ml-5 text-sm text-gray-500">Looks like someone might be able to treat themselves.</p> -->
+        <div class="absolute bottom-0 left-0 w-full h-full flex items-center justify-center">
+        <span class="uppercase text-white text-lg md:text-3xl font-black leading-none">FPO</span>
+      </div>
+        <div class="absolute bottom-0 left-0 w-full flex items-center justify-center">
+          <div class="text-xs leading-snug w-36 bg-white p-2 rounded">Looks like someone might be able to treat themselves.</div>
+        </div>
       </div>
     </div>
 
@@ -170,6 +188,7 @@ export default defineComponent({
             : Math.round(-100 / (decimalOdds.value - 1));
           fractionalOdds.value = `${Math.round((decimalOdds.value - 1) * 100)}/${100}`;
           impliedProbability.value = Math.round((1 / decimalOdds.value) * 100);
+          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
           break;
         case 'american':
           decimalOdds.value = americanOdds.value > 0 
@@ -181,6 +200,7 @@ export default defineComponent({
           impliedProbability.value = americanOdds.value > 0 
             ? Math.round((100 / (americanOdds.value + 100)) * 100) 
             : Math.round((-americanOdds.value / (-americanOdds.value + 100)) * 100);
+          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
           break;
         case 'fractional':
           const [numerator, denominator] = fractionalOdds.value.split('/').map(Number);
@@ -189,6 +209,7 @@ export default defineComponent({
             ? Math.round((numerator / denominator) * 100) 
             : Math.round((-100 * denominator) / numerator);
           impliedProbability.value = Math.round((denominator / (numerator + denominator)) * 100);
+          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
           break;
         case 'implied':
           decimalOdds.value = 100 / impliedProbability.value;
@@ -196,6 +217,7 @@ export default defineComponent({
             ? Math.round((100 / impliedProbability.value - 1) * 100) 
             : Math.round(-100 / (100 / impliedProbability.value - 1));
           fractionalOdds.value = `${Math.round((100 / impliedProbability.value - 1) * 100)}/${100}`;
+          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
           break;
       }
     };
@@ -224,8 +246,9 @@ export default defineComponent({
       labels: ['FPO', 'Profit'],
       datasets: [{
         backgroundColor: ['#1e3a8a', '#15803d'],
-        data: [amount.value, parseFloat(toWin.value)]
-      }]
+        data: [amount.value, parseFloat(toWin.value)],
+        borderWidth: 0
+      }],
     }));
 
     const chartOptions = {
@@ -308,5 +331,45 @@ export default defineComponent({
 .group:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+.input-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #fff;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity .2s;
+}
+
+.input-range:hover {
+  opacity: 1;
+}
+
+.input-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px; 
+  background: white;  
+  border-radius: 50%;
+  border: 2px solid #00823E;
+}
+
+.input-range::-moz-range-thumb {
+  width: 24px;
+  height: 24px; 
+  background: white;  
+  border-radius: 50%;
+  border: 2px solid #00823E;
+}
+
+.custom-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: white url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktY2hldnJvbi1kb3duIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTEuNjQ2IDQuNjQ2YS41LjUgMCAwIDEgLjcwOCAwTDggMTAuMjkzbDUuNjQ2LTUuNjQ3YS41LjUgMCAwIDEgLjcwOC43MDhsLTYgNmEuNS41IDAgMCAxLS43MDggMGwtNi02YS41LjUgMCAwIDEgMC0uNzA4Ii8+Cjwvc3ZnPg==') no-repeat right 1rem center/12px 12px;
 }
 </style>

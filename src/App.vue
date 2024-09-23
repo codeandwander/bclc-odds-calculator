@@ -7,11 +7,3 @@ import OddsCalculator from './components/OddsCalculator.vue'
     <OddsCalculator />
   </main>
 </template>
-
-<style scoped>
-main {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-</style>

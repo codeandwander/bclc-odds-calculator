@@ -1,8 +1,10 @@
 <template>
-  <span class="tooltip-container">
+  <span class="group relative -top-1 inline-block">
     <slot name="trigger"></slot>
-    <span class="info-icon" v-if="!$slots.trigger">ⓘ</span>
-    <span class="tooltip">
+    <span v-if="!$slots.trigger" class="w-[13px] h-[13px] inline-flex items-center justify-center bg-[#001941] rounded-full cursor-help ml-1">
+      <span class="text-[10px] font-bold text-white">?</span>
+    </span>
+    <span class="invisible opacity-0 w-48 bg-[#001941] text-white text-center leading-snug text-sm rounded-md py-1 px-2 absolute z-10 bottom-full left-1/2 -translate-x-1/2 transition-opacity duration-300 group-hover:visible group-hover:opacity-100">
       <slot></slot>
     </span>
   </span>
@@ -15,39 +17,3 @@ export default defineComponent({
   name: 'InfoTooltip',
 });
 </script>
-
-<style scoped>
-.tooltip-container {
-  position: relative;
-  display: inline-block;
-}
-
-.info-icon {
-  font-size: 0.8em;
-  color: #00823E;
-  cursor: help;
-  margin-left: 0.25rem;
-}
-
-.tooltip {
-  visibility: hidden;
-  width: 200px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -100px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tooltip-container:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-</style>
