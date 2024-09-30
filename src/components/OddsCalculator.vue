@@ -22,7 +22,11 @@
 
     <div class="w-full h-[1px] bg-[#CDCDCD] mb-4"></div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 w-full mb-5 gap-5">
+    <div 
+      class="grid grid-cols-1 w-full mb-5 gap-5" 
+      :class="[
+        betType === 'single' ? '' : 'grid-cols-1 md:grid-cols-2'
+      ]">
       <div class="flex w-full flex-col flex-1">
         <h3 class="text-black font-black">Enter Amount</h3>
         <p class="mb-4 text-black text-sm">Enter the amount or use the slide to increase your wager</p>
@@ -30,7 +34,7 @@
           type="number" 
           v-model="amount" 
           :class="[
-            'p-2 border border-gray-400 rounded mb-5 w-[117px]'
+            'p-2 border border-gray-400 rounded mb-5 w-[117px]',
           ]"
         />
         <input type="range" v-model="amount" min="0" max="1000" step="10" class="input-range w-full mb-2" />
@@ -74,7 +78,7 @@
           <label class="block mb-2 text-sm font-bold text-black leading-none">Implied<br/>Probability
             <InfoTooltip>Implied probability is the probability of an event occurring based on the odds. For example, a decimal odds of 1.91 means a $100 bet would return $191.</InfoTooltip>
           </label>
-          <input type="number" v-model="impliedProbability" step="0.1" class="w-full p-3 text-sm rounded" @input="updateOdds('implied')" />
+          <input type="text" v-model="impliedProbabilityDisplay" class="w-full p-3 text-sm rounded" @input="updateOdds('implied')" />
         </div>
       </div>
     </div>
@@ -85,10 +89,17 @@
       <div v-for="(bet, index) in bets" :key="index">
         <h3 class="text-black font-bold">Bet {{ index + 1 }}</h3>
         <p class="mb-4 text-sm text-black">{{ index === 0 ? 'Your first parlay odds' : 'Your next parlay odds' }}</p>
-        <input type="number" v-model="bets[index]" step="0.01" class="w-full p-3 text-sm rounded" />
+        <div class="flex items-center">
+          <input type="text" v-model="bets[index]" class="w-full p-3 text-sm rounded mr-2" />
+          <button @click="removeBet(index)" class="bg-red-500 text-white p-2 rounded" v-if="bets.length > 1">
+            Remove
+          </button>
+        </div>
       </div>
     </div>
-    <button v-if="betType === 'parlay'"  @click="addBet" class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold">Add Bet</button>
+    <button v-if="betType === 'parlay'" @click="addBet" class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold">
+      Add Bet
+    </button>
 
     <div class="w-full h-[1px] bg-[#CDCDCD] mb-5" v-if="betType === 'parlay'" ></div>
 
@@ -97,19 +108,19 @@
         <div class="">
           <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Potential Return' }}</h3>
           <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Total wager and potential payout' }}</p>
-          <input type="text" :value="betType === 'parlay' ? parlayOdds : potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+          <input type="text" :value="'$' + (betType === 'parlay' ? parlayOdds : potentialReturn)" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
         </div>
         
         <div class="">
           <h3 class="text-black font-black leading-none mb-2">To Win</h3>
           <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit</p>
-          <input type="text" :value="toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+          <input type="text" :value="'$' + toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
         </div>
         
         <div v-if="betType === 'parlay'" class="">
           <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
           <p class="mb-4 text-black text-sm">Total wager and potential payout</p>
-          <input type="text" :value="potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E]" />
+          <input type="text" :value="'$' + potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
         </div>
 
         <div>
@@ -133,7 +144,7 @@
         <span class="uppercase text-white text-lg md:text-3xl font-black leading-none">FPO</span>
       </div>
         <div class="absolute bottom-0 left-0 w-full flex items-center justify-center">
-          <div class="text-xs leading-snug w-36 bg-white p-2 rounded">Looks like someone might be able to treat themselves.</div>
+          <div class="text-xs leading-snug w-36 bg-white p-2 rounded">{{ oddsMessage }}</div>
         </div>
       </div>
     </div>
@@ -172,13 +183,35 @@ export default defineComponent({
   components: { Pie, InfoTooltip },
   setup() {
     const betType = ref('single');
-    const amount = ref(10);
+    const amount = ref(150); // Default bet amount set to 150
     const format = ref('decimal');
-    const decimalOdds = ref(1.91);
+    const decimalOdds = ref(2.5); // Default decimal odds for single bet
     const americanOdds = ref(100);
     const fractionalOdds = ref('2/1');
     const impliedProbability = ref(51);
-    const bets = ref([1.91, 1.91, 1.91, 1.91]);
+    const bets = ref(['2.5']); // Default bet for parlay (decimal format)
+    const impliedProbabilityDisplay = computed({
+      get: () => `${impliedProbability.value}%`,
+      set: (value) => {
+        impliedProbability.value = parseInt(value.replace('%', ''), 10);
+      }
+    });
+
+    const updateDefaultBet = () => {
+      switch (format.value) {
+        case 'american':
+          bets.value = ['150'];
+          break;
+        case 'decimal':
+          bets.value = ['2.5'];
+          break;
+        case 'fractional':
+          bets.value = ['3/2'];
+          break;
+      }
+    };
+
+    watch(format, updateDefaultBet);
 
     const updateOdds = (type: string) => {
       switch (type) {
@@ -212,33 +245,105 @@ export default defineComponent({
           decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
           break;
         case 'implied':
-          decimalOdds.value = 100 / impliedProbability.value;
-          americanOdds.value = impliedProbability.value < 50 
-            ? Math.round((100 / impliedProbability.value - 1) * 100) 
-            : Math.round(-100 / (100 / impliedProbability.value - 1));
-          fractionalOdds.value = `${Math.round((100 / impliedProbability.value - 1) * 100)}/${100}`;
-          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2)); // Ensure 2 decimal points
+          const probability = parseFloat(impliedProbability.value.toString().replace('%', ''));
+          decimalOdds.value = 100 / probability;
+          americanOdds.value = probability < 50 
+            ? Math.round((100 / probability - 1) * 100) 
+            : Math.round(-100 / (100 / probability - 1));
+          fractionalOdds.value = `${Math.round((100 / probability - 1) * 100)}/${100}`;
+          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2));
           break;
       }
     };
 
     const addBet = () => {
       if (bets.value.length < 10) {
-        bets.value.push(1.91);
+        bets.value.push(bets.value[0]); // Add a new bet with the same odds as the first bet
       }
     };
 
+    const removeBet = (index: number) => {
+      if (bets.value.length > 1) {
+        bets.value.splice(index, 1);
+      }
+    };
+
+    const americanToDecimal = (americanOdds: number): number => {
+      return americanOdds > 0 ? (americanOdds / 100) + 1 : (100 / Math.abs(americanOdds)) + 1;
+    };
+
+    const decimalToAmerican = (decimalOdds: number): string => {
+      return decimalOdds >= 2 
+        ? `+${Math.round((decimalOdds - 1) * 100)}`
+        : `-${Math.round(100 / (decimalOdds - 1))}`;
+    };
+
+    const fractionalToDecimal = (fractional: string): number => {
+      const [numerator, denominator] = fractional.split('/').map(Number);
+      return 1 + (numerator / denominator);
+    };
+
+    const decimalToFractional = (decimal: number): string => {
+      const numerator = Math.round((decimal - 1) * 100);
+      const denominator = 100;
+      return `${numerator}/${denominator}`;
+    };
+
     const parlayOdds = computed(() => {
-      return bets.value.reduce((acc, bet) => acc * bet, 1).toFixed(2);
+      const totalDecimalOdds = bets.value.reduce((acc, bet) => {
+        let decimalOdds;
+        switch (format.value) {
+          case 'american':
+            decimalOdds = americanToDecimal(parseFloat(bet));
+            break;
+          case 'fractional':
+            decimalOdds = fractionalToDecimal(bet);
+            break;
+          default:
+            decimalOdds = parseFloat(bet);
+        }
+        return acc * decimalOdds;
+      }, 1);
+
+      switch (format.value) {
+        case 'decimal':
+          return totalDecimalOdds.toFixed(2);
+        case 'american':
+          return decimalToAmerican(totalDecimalOdds);
+        case 'fractional':
+          return decimalToFractional(totalDecimalOdds);
+        default:
+          return totalDecimalOdds.toFixed(2);
+      }
     });
 
     const toWin = computed(() => {
-      const odds = betType.value === 'single' ? decimalOdds.value : parseFloat(parlayOdds.value);
+      let odds = betType.value === 'single' ? decimalOdds.value : parseFloat(parlayOdds.value);
+      if (betType.value === 'parlay') {
+        switch (format.value) {
+          case 'american':
+            odds = americanToDecimal(parseFloat(parlayOdds.value.replace('+', '')));
+            break;
+          case 'fractional':
+            odds = fractionalToDecimal(parlayOdds.value);
+            break;
+        }
+      }
       return ((odds - 1) * amount.value).toFixed(2);
     });
 
     const potentialReturn = computed(() => {
-      const odds = betType.value === 'single' ? decimalOdds.value : parseFloat(parlayOdds.value);
+      let odds = betType.value === 'single' ? decimalOdds.value : parseFloat(parlayOdds.value);
+      if (betType.value === 'parlay') {
+        switch (format.value) {
+          case 'american':
+            odds = americanToDecimal(parseFloat(parlayOdds.value.replace('+', '')));
+            break;
+          case 'fractional':
+            odds = fractionalToDecimal(parlayOdds.value);
+            break;
+        }
+      }
       return (odds * amount.value).toFixed(2);
     });
 
@@ -272,11 +377,26 @@ export default defineComponent({
     };
 
     const reset = () => {
-      amount.value = 10;
-      decimalOdds.value = 1.91;
-      bets.value = [1.91, 1.91, 1.91, 1.91];
-      updateOdds('decimal');
+      amount.value = 150;
+      if (betType.value === 'single') {
+        decimalOdds.value = 2.5;
+      } else {
+        updateDefaultBet();
+      }
+      // ... other reset logic ...
     };
+
+    const oddsMessage = computed(() => {
+      const winAmount = parseFloat(toWin.value);
+      const betAmount = amount.value;
+      if (winAmount > betAmount * 2) {
+        return "Looks like someone might be able to treat themselves!";
+      } else if (winAmount > betAmount) {
+        return "A modest profit is still a profit.";
+      } else {
+        return "These odds aren't in your favor. Bet responsibly.";
+      }
+    });
 
     watch(amount, () => {
       if (amount.value < 0) amount.value = 0;
@@ -298,7 +418,11 @@ export default defineComponent({
       chartOptions,
       updateOdds,
       addBet,
+      removeBet,
       reset,
+      impliedProbability,
+      impliedProbabilityDisplay,
+      oddsMessage,
     };
   },
 });
@@ -370,6 +494,6 @@ export default defineComponent({
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background: white url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktY2hldnJvbi1kb3duIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTEuNjQ2IDQuNjQ2YS41LjUgMCAwIDEgLjcwOCAwTDggMTAuMjkzbDUuNjQ2LTUuNjQ3YS41LjUgMCAwIDEgLjcwOC43MDhsLTYgNmEuNS41IDAgMCAxLS43MDggMGwtNi02YS41LjUgMCAwIDEgMC0uNzA4Ii8+Cjwvc3ZnPg==') no-repeat right 1rem center/12px 12px;
+  background: white url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmkgY2hldnJvbi1kb3duIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTEuNjQ2IDQuNjQ2YS41LjUgMCAwIDEgLjcwOCAwTDggMTAuMjkzbDUuNjQ2LTUuNjQ3YS41LjUgMCAwIDEgLjcwOC43MDhsLTYgNmEuNS41IDAgMCAxLS43MDggMGwtNi02YS41LjUgMCAwIDEgMC0uNzA4Ii8+Cjwvc3ZnPg==') no-repeat right 1rem center/12px 12px;
 }
 </style>
