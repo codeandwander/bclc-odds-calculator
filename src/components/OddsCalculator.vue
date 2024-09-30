@@ -420,7 +420,6 @@ export default defineComponent({
       addBet,
       removeBet,
       reset,
-      impliedProbability,
       impliedProbabilityDisplay,
       oddsMessage,
     };
