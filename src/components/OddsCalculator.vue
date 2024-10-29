@@ -371,7 +371,7 @@ export default defineComponent({
       plugins: {
         legend: {
           display: true,
-          position: 'bottom',
+          position: 'bottom' as const,
           labels: {
             color: '#000000',
             font: {
