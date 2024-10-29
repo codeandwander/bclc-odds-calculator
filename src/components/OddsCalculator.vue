@@ -28,16 +28,19 @@
         betType === 'single' ? '' : 'grid-cols-1 md:grid-cols-2'
       ]">
       <div class="flex w-full flex-col flex-1">
-        <h3 class="text-black font-black">Enter Amount</h3>
+        <h3 class="text-black font-black">Enter Wager Amount</h3>
         <p class="mb-4 text-black text-sm">Enter the amount or use the slide to increase your wager</p>
-        <input 
-          type="number" 
-          v-model="amount" 
-          :class="[
-            'p-2 border border-gray-400 rounded mb-5 w-[117px]',
-          ]"
-        />
-        <input type="range" v-model="amount" min="0" max="1000" step="10" class="input-range w-full mb-2" />
+        <div class="relative w-[117px]">
+          <span class="absolute left-2.5 top-1/2 transform -translate-y-1/2">$</span>
+          <input 
+            type="number" 
+            v-model="amount" 
+            :class="[
+              'p-2 pl-5 border border-gray-400 rounded w-full',
+            ]"
+          />
+        </div>
+        <input type="range" v-model="amount" min="0" max="1000" step="10" class="input-range w-full  mt-5 mb-2" />
       </div>
 
       <div v-if="betType === 'parlay'" class="flex-1">
@@ -97,6 +100,7 @@
         </div>
       </div>
     </div>
+  
     <button v-if="betType === 'parlay'" @click="addBet" class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold">
       Add Bet
     </button>
@@ -104,51 +108,56 @@
     <div class="w-full h-[1px] bg-[#CDCDCD] mb-5" v-if="betType === 'parlay'" ></div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
-      <div class="col-span-2 grid grid-cols-2 gap-5">
-        <div class="">
-          <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Potential Return' }}</h3>
-          <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Total wager and potential payout' }}</p>
-          <input type="text" :value="'$' + (betType === 'parlay' ? parlayOdds : potentialReturn)" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
-        </div>
-        
-        <div class="">
-          <h3 class="text-black font-black leading-none mb-2">To Win</h3>
-          <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit</p>
-          <input type="text" :value="'$' + toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
-        </div>
-        
-        <div v-if="betType === 'parlay'" class="">
-          <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
-          <p class="mb-4 text-black text-sm">Total wager and potential payout</p>
-          <input type="text" :value="'$' + potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
+        <div class="col-span-2 grid grid-cols-2 gap-5">
+          <div class="">
+            <h3 class="text-black font-black leading-none mb-2">Winnings</h3>
+            <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit</p>
+            <input type="text" :value="'$' + toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
+          </div>
+
+          <div class="">
+            <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Total payout' }}</h3>
+            <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Your original wager plus the potential winnings' }}</p>
+            <input 
+              type="text" 
+              :value="betType === 'parlay' ? parlayOdds : '$' + potentialReturn" 
+              readonly 
+              class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" 
+            />
+          </div>
+          
+          <div v-if="betType === 'parlay'" class="">
+            <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
+            <p class="mb-4 text-black text-sm">Total wager and potential payout</p>
+            <input type="text" :value="'$' + potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
+          </div>
+
+          <div>
+            <button 
+              @click="reset" 
+              :class="[
+                'border border-[#001941] text-[#001941] rounded-full pt-2.5 pb-2 px-6 cursor-pointer font-bold', 
+                betType === 'single' ? 'md:relative md:-top-12' : ''
+              ]"
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
-        <div>
-          <button 
-            @click="reset" 
-            :class="[
-              'border border-[#001941] text-[#001941] rounded-full pt-2.5 pb-2 px-6 cursor-pointer font-bold', 
-              betType === 'single' ? 'md:relative md:-top-12' : ''
-            ]"
-          >
-            Reset
-          </button>
+        <div :class="['relative col-span-2 p-6', betType === 'parlay' ? 'hidden md:block' : '']">
+          <div class="w-full h-56">
+            <Pie :data="chartData" :options="chartOptions" />
+          </div>
+          <div class="absolute bottom-0 left-0 w-full h-full flex items-center justify-center">
+          <!-- <span class="uppercase text-white text-lg md:text-3xl font-black leading-none">FPO</span> -->
         </div>
-      </div>
 
-      <div :class="['relative col-span-2 p-6', betType === 'parlay' ? 'hidden md:block' : '']">
-        <div class="w-full h-56">
-          <Pie :data="chartData" :options="chartOptions" />
-        </div>
-        <div class="absolute bottom-0 left-0 w-full h-full flex items-center justify-center">
-        <span class="uppercase text-white text-lg md:text-3xl font-black leading-none">FPO</span>
-      </div>
-        <div class="absolute bottom-0 left-0 w-full flex items-center justify-center">
+        <!-- <div class="absolute bottom-0 left-0 w-full flex items-center justify-center">
           <div class="text-xs leading-snug w-36 bg-white p-2 rounded">{{ oddsMessage }}</div>
-        </div>
+        </div> -->
       </div>
     </div>
-
   </div>
 </template>
 
@@ -348,7 +357,7 @@ export default defineComponent({
     });
 
     const chartData = computed(() => ({
-      labels: ['FPO', 'Profit'],
+      labels: ['Original Wager', 'Profit'],
       datasets: [{
         backgroundColor: ['#1e3a8a', '#15803d'],
         data: [amount.value, parseFloat(toWin.value)],
@@ -361,7 +370,15 @@ export default defineComponent({
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false
+          display: true,
+          position: 'bottom',
+          labels: {
+            color: '#000000',
+            font: {
+              family: 'fort',
+              size: 12
+            }
+          }
         },
         tooltip: {
           callbacks: {
@@ -389,12 +406,20 @@ export default defineComponent({
     const oddsMessage = computed(() => {
       const winAmount = parseFloat(toWin.value);
       const betAmount = amount.value;
+      const probability = betType.value === 'single' ? impliedProbability.value : 0; // Only for single bets
+
+      // Handle 100% probability case
+      if (probability === 100) {
+        return "Guaranteed return, but no profit to be made.";
+      }
+      
+      // Original logic for other cases
       if (winAmount > betAmount * 2) {
         return "Looks like someone might be able to treat themselves!";
       } else if (winAmount > betAmount) {
         return "A modest profit is still a profit.";
       } else {
-        return "These odds aren't in your favor. Bet responsibly.";
+        return "Lower potential return. Consider your options carefully.";
       }
     });
 
