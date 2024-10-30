@@ -8,7 +8,7 @@
           <span v-if="betType === 'single'" class="w-3 h-3 bg-[#00823E] rounded-full"></span>
         </span>
         Single
-        <InfoTooltip>A single bet is a wager on one selection in a single event.</InfoTooltip>
+        <InfoTooltip>Enter your wager amount and whichever odds format you prefer to calculate your potential payouts.</InfoTooltip>
       </label>
       <label class="flex items-center cursor-pointer">
         <input type="radio" v-model="betType" value="parlay" class="hidden" />
@@ -16,7 +16,7 @@
           <span v-if="betType === 'parlay'" class="w-3 h-3 bg-[#00823E] rounded-full"></span>
         </span>
         Parlay
-        <InfoTooltip>A parlay is a wager on two or more selections in different events.</InfoTooltip>
+        <InfoTooltip>A bet that includes two or more outcomes that all must win. Enter your wager amount and your preferred odds format to calculate your potential payouts.</InfoTooltip>
       </label>
     </div>
 
@@ -29,7 +29,7 @@
       ]">
       <div class="flex w-full flex-col flex-1">
         <h3 class="text-black font-black">Enter Wager Amount</h3>
-        <p class="mb-4 text-black text-sm">Enter the amount or use the slide to increase your wager</p>
+        <p class="mb-4 text-black text-sm">Enter the amount you want to bet or use the slider to increase your wager.</p>
         <div class="relative w-[117px]">
           <span class="absolute left-2.5 top-1/2 transform -translate-y-1/2">$</span>
           <input 
@@ -45,7 +45,7 @@
 
       <div v-if="betType === 'parlay'" class="flex-1">
         <h3 class="text-black font-bold">Format</h3>
-        <p class="mb-4 text-black text-sm">Choose your parlay odds format</p>
+        <p class="mb-4 text-black text-sm">Choose your parlay odds format.</p>
         <select v-model="format" class="w-full p-3 text-sm rounded mb-2 pr-8 custom-select">
           <option value="decimal">Decimal</option>
           <option value="american">American</option>
@@ -91,7 +91,7 @@
     <div v-if="betType === 'parlay'" class="grid grid-cols-2 gap-5 mb-5">
       <div v-for="(bet, index) in bets" :key="index">
         <h3 class="text-black font-bold">Bet {{ index + 1 }}</h3>
-        <p class="mb-4 text-sm text-black">{{ index === 0 ? 'Your first parlay odds' : 'Your next parlay odds' }}</p>
+        <p class="mb-4 text-sm text-black">{{ index === 0 ? 'Your first parlay odds' : 'Your next parlay odds' }}.</p>
         <div class="flex items-center">
           <input type="text" v-model="bets[index]" class="w-full p-3 text-sm rounded mr-2" />
           <button @click="removeBet(index)" class="bg-red-500 text-white p-2 rounded" v-if="bets.length > 1">
@@ -111,13 +111,13 @@
         <div class="col-span-2 grid grid-cols-2 gap-5">
           <div class="">
             <h3 class="text-black font-black leading-none mb-2">Winnings</h3>
-            <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit</p>
+            <p class="mb-4 text-black text-sm leading-none">Your expected <br v-if="betType === 'single'" />profit.</p>
             <input type="text" :value="'$' + toWin" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
           </div>
 
           <div class="">
             <h3 class="text-black font-black leading-none mb-2">{{ betType === 'parlay' ? 'Parlay Odds' : 'Total payout' }}</h3>
-            <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Your original wager plus the potential winnings' }}</p>
+            <p class="mb-4 text-black text-sm leading-none">{{ betType === 'parlay' ? 'Combined odds' : 'Your original wager plus the potential winnings' }}.</p>
             <input 
               type="text" 
               :value="betType === 'parlay' ? parlayOdds : '$' + potentialReturn" 
@@ -128,7 +128,7 @@
           
           <div v-if="betType === 'parlay'" class="">
             <h3 class="text-black font-black leading-none mb-2">Potential Return</h3>
-            <p class="mb-4 text-black text-sm">Total wager and potential payout</p>
+            <p class="mb-4 text-black text-sm">Total wager and potential payout.</p>
             <input type="text" :value="'$' + potentialReturn" readonly class="w-full p-3 text-sm rounded border-2 border-[#00823E] font-bold" />
           </div>
 
