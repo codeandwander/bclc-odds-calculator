@@ -213,11 +213,11 @@ export default defineComponent({
     const amount = ref(100); // Default bet amount set to 150
     const format = ref('american');
     const previousFormat = ref('american');
-    const decimalOdds = ref(2.5); // Default decimal odds for single bet
-    const americanOdds = ref(150);
-    const fractionalOdds = ref('3/2');
-    const impliedProbability = ref(40);
-    const bets = ref(['150']); // Default bet for parlay (decimal format)
+    const decimalOdds = ref<number | null>(2.5); // Default decimal odds for single bet
+    const americanOdds = ref<number | null>(150);
+    const fractionalOdds = ref<string>('3/2');
+    const impliedProbability = ref<number | null>(40);
+    const bets = ref<string[]>(['150']); // Default bet for parlay (decimal format)
 
     const updateDefaultBet = () => {
       // Convert existing bets to new format instead of resetting
@@ -283,14 +283,14 @@ export default defineComponent({
       let isValid = true;
       switch (type) {
         case 'decimal':
-          if (decimalOdds.value <= 1) {
+          if (decimalOdds.value! <= 1) {
             errors.value.decimal = 'Decimal odds must be greater than 1';
             isValid = false;
           }
           break;
 
         case 'american':
-          if (Math.abs(americanOdds.value) < 100) {
+          if (Math.abs(americanOdds.value!) < 100) {
             errors.value.american = 'American odds must be ≥ 100 or ≤ -100';
             isValid = false;
           }
@@ -311,7 +311,7 @@ export default defineComponent({
           break;
 
         case 'implied':
-          const probability = parseFloat(impliedProbability.value.toString().replace('%', ''));
+          const probability = parseFloat(impliedProbability.value!.toString().replace('%', ''));
           if (probability <= 0 || probability > 100) {
             errors.value.implied = 'Probability must be between 0 and 100';
             isValid = false;
@@ -328,24 +328,24 @@ export default defineComponent({
       // Update other odds based on the valid input
       switch (type) {
         case 'decimal':
-          americanOdds.value = decimalOdds.value >= 2 
-            ? Math.round((decimalOdds.value - 1) * 100) 
-            : Math.round(-100 / (decimalOdds.value - 1));
-          fractionalOdds.value = decimalToFractional(decimalOdds.value);
-          impliedProbability.value = Math.round((1 / decimalOdds.value) * 100);
-          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2));
+          americanOdds.value = decimalOdds.value! >= 2 
+            ? Math.round((decimalOdds.value! - 1) * 100) 
+            : Math.round(-100 / (decimalOdds.value! - 1));
+          fractionalOdds.value = decimalToFractional(decimalOdds.value!);
+          impliedProbability.value = Math.round((1 / decimalOdds.value!) * 100);
+          decimalOdds.value = parseFloat(decimalOdds.value!.toFixed(2));
           break;
 
         case 'american':
-          decimalOdds.value = americanOdds.value > 0 
-            ? 1 + (americanOdds.value / 100) 
-            : 1 - (100 / americanOdds.value);
-          fractionalOdds.value = americanOdds.value > 0 
-            ? decimalToFractional(decimalOdds.value) 
-            : `100/${-americanOdds.value}`;
-          impliedProbability.value = americanOdds.value > 0 
-            ? Math.round((100 / (americanOdds.value + 100)) * 100) 
-            : Math.round((-americanOdds.value / (-americanOdds.value + 100)) * 100);
+          decimalOdds.value = americanOdds.value! > 0 
+            ? 1 + (americanOdds.value! / 100) 
+            : 1 - (100 / americanOdds.value!);
+          fractionalOdds.value = americanOdds.value! > 0 
+            ? decimalToFractional(decimalOdds.value!) 
+            : `100/${-americanOdds.value!}`;
+          impliedProbability.value = americanOdds.value! > 0 
+            ? Math.round((100 / (americanOdds.value! + 100)) * 100) 
+            : Math.round((-americanOdds.value! / (-americanOdds.value! + 100)) * 100);
           decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2));
           break;
 
@@ -360,13 +360,13 @@ export default defineComponent({
           break;
 
         case 'implied':
-          const probability = parseFloat(impliedProbability.value.toString().replace('%', ''));
+          const probability = parseFloat(impliedProbability.value!.toString().replace('%', ''));
           decimalOdds.value = 100 / probability;
           americanOdds.value = probability < 50 
             ? Math.round((100 / probability - 1) * 100) 
             : Math.round(-100 / (100 / probability - 1));
-          fractionalOdds.value = decimalToFractional(decimalOdds.value);
-          decimalOdds.value = parseFloat(decimalOdds.value.toFixed(2));
+          fractionalOdds.value = decimalToFractional(decimalOdds.value!);
+          decimalOdds.value = parseFloat(decimalOdds.value!.toFixed(2));
           break;
       }
     };
@@ -461,6 +461,9 @@ export default defineComponent({
             break;
         }
       }
+
+      if (!odds) return '0.00';
+
       return ((odds - 1) * amount.value).toFixed(2);
     });
 
@@ -481,6 +484,8 @@ export default defineComponent({
             break;
         }
       }
+
+      if (!odds) return '0.00';
       return (odds * amount.value).toFixed(2);
     });
 
@@ -529,9 +534,15 @@ export default defineComponent({
         fractionalOdds.value = '3/2';
         impliedProbability.value = 40;
       } else {
+        // Reset parlay specific values
+        format.value = 'american';
+        previousFormat.value = 'american';
+        bets.value = ['150']; // Reset to single default bet
         updateDefaultBet();
       }
-      // ... other reset logic ...
+      
+      // Clear any existing errors
+      clearErrors();
     };
 
     const oddsMessage = computed(() => {
