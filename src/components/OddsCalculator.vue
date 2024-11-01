@@ -114,7 +114,11 @@
       </div>
     </div>
   
-    <button v-if="betType === 'parlay'" @click="addBet" class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold">
+    <button 
+      v-if="betType === 'parlay' && bets.length < 10" 
+      @click="addBet" 
+      class="mb-2 bg-[#00823E] text-white border-none pt-2.5 pb-2 px-6 rounded-full cursor-pointer mt-2 font-bold"
+    >
       Add Bet
     </button>
 
