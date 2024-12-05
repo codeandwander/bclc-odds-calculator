@@ -3,7 +3,7 @@ import OddsCalculator from './components/OddsCalculator.vue'
 </script>
 
 <template>
-  <main>
+  <div id="odds-calculator-app">
     <OddsCalculator />
-  </main>
+  </div>
 </template>

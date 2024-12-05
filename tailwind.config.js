@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  important: '#odds-calculator-app',
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -13,4 +14,3 @@ export default {
   },
   plugins: [],
 }
-
