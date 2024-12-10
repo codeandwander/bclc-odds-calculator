@@ -31,7 +31,7 @@
         <h3 class="text-black font-black">Enter Wager Amount</h3>
         <p class="mb-4 text-black text-sm">{{ betType === 'single' ? 'Enter the amount you want to bet or use the slider to increase your wager.' : 'Enter the amount you want to bet.' }}</p>
         <div class="relative w-[117px]">
-          <span class="absolute left-2.5 top-[52%] transform -translate-y-1/2">$</span>
+          <span class="absolute left-2.5 top-[24%] transform -translate-y-1/2">$</span>
           <input 
             type="number" 
             v-model="amount" 
